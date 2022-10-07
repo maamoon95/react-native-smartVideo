@@ -140,9 +140,6 @@ const setInitialScreen = function () {
   $('#oncall-screen').hide();
   $('#lang').show();
   inactivityTimeout.set();
-  startCleanInteraction();
-  // cancel video session after 3 minutes timeout
-  callTimeout.set();
 };
 
 const setOnCallScreen = function () {
@@ -279,6 +276,9 @@ const loadGenesysWidget = function () {
       console.error('WebService error' + JSON.stringify(e));
       setInitialScreen();
     });
+    startCleanInteraction();
+    // cancel video session after 3 minutes timeout
+    callTimeout.set();
   });
   document.head.append(widgetScriptElement);
 };
