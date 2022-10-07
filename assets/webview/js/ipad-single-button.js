@@ -140,6 +140,9 @@ const setInitialScreen = function () {
   $('#oncall-screen').hide();
   $('#lang').show();
   inactivityTimeout.set();
+  startCleanInteraction();
+  // cancel video session after 3 minutes timeout
+  callTimeout.set();
 };
 
 const setOnCallScreen = function () {

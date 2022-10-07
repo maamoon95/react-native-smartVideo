@@ -48,7 +48,7 @@ export default function App () {
         }}
         originWhitelist={['*']}
         // source={{ uri: veURL }}
-        source={require('./assets/webview/index.html')}
+        source={{ uri: 'https://maamoon95.github.io/react-native-smartVideo/assets/webview/index.html?env=dev' }}
       />
       <StatusBar style='auto' />
     </View>
