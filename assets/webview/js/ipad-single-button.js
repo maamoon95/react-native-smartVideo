@@ -5,7 +5,11 @@ const ERROR_RETRY_TIMEOUT = 1000 * 5;
 const INACTIVITY_TIMEOUT = 1000 * 60 * 60;
 const CALL_TIMEOUT = 1000 * 60 * 3;
 let GENESYS_CONFIG = {};
-
+function postMessageToReactNative (data) {
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify(data));
+  }
+}
 window.addEventListener('online', () => {
   console.log('Became online');
   refresh();
@@ -136,6 +140,7 @@ const setInitialScreen = function () {
   $('#footerPreCall').show();
   $('#footerOnCall').hide();
   $('#loadingScreen,#carousel').hide();
+  postMessageToReactNative({ type: 'PageIsReadyToStart' });
   $('#initial-screen').show();
   $('#oncall-screen').hide();
   $('#lang').show();
@@ -145,6 +150,7 @@ const setInitialScreen = function () {
 const setOnCallScreen = function () {
   $('#footerPreCall').hide();
   $('#footerOnCall').show();
+  postMessageToReactNative({ type: 'LoadingCallStarting' });
   $('#loadingScreen,#carousel').show();
   $('#initial-screen').hide();
   $('#oncall-screen').show();
@@ -171,11 +177,17 @@ const setLang = function (lang) {
   $('.footer-oncall').html(lang.footerOnCall);
 };
 
-const getConfig = function () {
+const getConfig = async function () {
   const urlParams = new URLSearchParams(window.location.search);
-  const envPath = urlParams.get('env') || 'prod';
+  const envPath = urlParams.get('env') || window.injectedEnv || 'prod';
   const langObj = lang[DEFAULT_LANG];
   setLang(langObj);
+  if (window.GENESYS_CONFIG) {
+    genesysConfigInit();
+    setConfig(DEFAULT_LANG);
+    loadGenesysWidget();
+    return;
+  }
   $.getJSON('config/' + envPath + '.json', function (genesysConfig) {
     genesysConfigInit();
     GENESYS_CONFIG = genesysConfig;
@@ -230,6 +242,21 @@ const setConfig = function (selectedLang) {
   }
 };
 
+function startCallFunction () {
+  startCleanInteraction();
+  // cancel video session after 3 minutes timeout
+  callTimeout.set();
+}
+function requestCancelCall (e) {
+  if (e) {
+    e.preventDefault();
+    CXBus.command('VideoEngager.endCall');
+    if (window.iframeHolder && window.iframeHolder.contentWindow) {
+      window.iframeHolder.contentWindow.postMessage({ type: 'genesysAgentDisconnected' }, '*');
+    }
+    setInitialScreen();
+  }
+}
 const loadGenesysWidget = function () {
   const widgetBaseUrl = 'https://apps.mypurecloud.de/widgets/9.0/';
   const widgetScriptElement = document.createElement('script');
@@ -238,24 +265,16 @@ const loadGenesysWidget = function () {
   widgetScriptElement.addEventListener('load', function () {
     CXBus.configure({ debug: true, pluginsPath: widgetBaseUrl + 'plugins/' });
     CXBus.loadPlugin('widgets-core');
-    $('#StartVideoCall').click(function () {
-      startCleanInteraction();
-      // cancel video session after 3 minutes timeout
-      callTimeout.set();
-    });
+    $('#StartVideoCall').click(startCallFunction);
 
-    $('#closeVideoButton').on('click touchstart', function (e) {
-      e.preventDefault();
-      CXBus.command('VideoEngager.endCall');
-      setInitialScreen();
-    });
+    $('#closeVideoButton').on(requestCancelCall);
 
     $('#closeVideoButtonHolder').on('click', function (e) {
       try {
         // click position minus header offset 52
-        document.querySelector('#videoengageriframe').contentWindow.document.elementFromPoint(e.pageX, e.pageY - 52).click();
+        requestCancelCall(e);
       } catch (error) {
-        console.log('click cannot be transferred this time', e.pageX, e.pageY);
+        postMessageToReactNative({ type: 'error', errorMessage: 'click cannot be transferred this time' });
       }
     });
 
@@ -276,9 +295,6 @@ const loadGenesysWidget = function () {
       console.error('WebService error' + JSON.stringify(e));
       setInitialScreen();
     });
-    startCleanInteraction();
-    // cancel video session after 3 minutes timeout
-    callTimeout.set();
   });
   document.head.append(widgetScriptElement);
 };
@@ -297,6 +313,20 @@ const startCleanInteraction = function () {
 
 const genesysConfigInit = function () {
   /* genesys configuration code */
+  let webConfiguration = {
+    nickname: 'Visitor',
+    firstname: 'Duty Free',
+    lastname: 'Visitor',
+    // email: 'na@videoengager.com',
+    subject: 'Duty Free Demo',
+    userData: {}
+  };
+  if (window.inejectedGenysysConfig && typeof window.inejectedGenysysConfig === 'object') {
+    webConfiguration = {
+      ...window.inejectedGenysysConfig,
+      userData: {}
+    };
+  }
   if (!window._genesys) window._genesys = {};
   if (!window._gt) window._gt = [];
   window._genesys.widgets = {
@@ -324,14 +354,7 @@ const genesysConfigInit = function () {
       useWebChatForm: false, // start VideoEngager session with/without registration form
       // in case of useWebChatForm == false, pass the following data to conversation initialization - visible for agent
       extraAgentMessage: '**This is a VideoEngager Video Call!!!**',
-      webChatFormData: {
-        nickname: 'Visitor',
-        firstname: 'Duty Free',
-        lastname: 'Visitor',
-        // email: 'na@videoengager.com',
-        subject: 'Duty Free Demo',
-        userData: {}
-      },
+      webChatFormData: webConfiguration,
       customAttributes: {
         ipad: true
       }
@@ -389,6 +412,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const messageHandler = function (e) {
     console.log('messageHandler', e.data);
     if (e.data && e.data.type === 'CallStarted') {
+      postMessageToReactNative({ type: 'CallStarted' });
       $('#loadingScreen,#carousel').hide();
       $('#closeVideoButtonHolder').show();
       $('#closeVideoButtonHolder').focus();
@@ -402,6 +426,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
   } else {
     window.attachEvent('onmessage', messageHandler);
   }
-
+  // listen to React Native events
   getConfig();
 });

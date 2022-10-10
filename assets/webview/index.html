@@ -15,6 +15,22 @@
 </head>
 
 <body class="container-body">
+    <script>
+        window.console = {
+            log: function (message) {
+                window.ReactNativeWebView.postMessage((JSON.stringify(message)));
+            },
+            info: function (message) {
+                window.ReactNativeWebView.postMessage((JSON.stringify(message)));
+            },
+            error: function (message) {
+                window.ReactNativeWebView.postMessage((JSON.stringify(message)));
+            },
+            warn: function (message) {
+                window.ReactNativeWebView.postMessage((JSON.stringify(message)));
+            }
+        };
+    </script>
     <header id="header-logo" class="header-css">
         <img width="30px" height="30px" src="./img/logo.png" />
         <div id="lang">

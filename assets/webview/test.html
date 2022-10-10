@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src='main.js'></script>
+</head>
+
+<body>
+    <script>
+        window.onload = function () {
+            console.log(window.reactNativeVars);
+            document.getElementById("test").innerHTML = window.reactNativeVars;
+
+        };
+        function changeValue (data) {
+            console.log(data);
+            document.getElementById("postmessage").innerHTML = data;
+        }
+        window.addEventListener('message', function (event) {
+            console.log(event.data);
+            changeValue(event.data);
+        });
+        window.addEventListener('onMessage', function (event) {
+            console.log(event.data);
+            changeValue(event.data);
+        });
+    </script>
+    <div>
+        <h1>Hello there</h1>
+        <p>Test</p>
+        <div id="test"></div>
+        <p>post message</p>
+        <div id="postmessage"></div>
+    </div>
+</body>
+
+</html>

@@ -5,6 +5,7 @@
         "videoengagerUrl": "https://staging.leadsecure.com",
         "tennantId": "oIiTR2XQIkb7p0ub",
         "environment": "https://api.mypurecloud.de",
+        "env":"mypurecloud.de",
         "queue": "Support"
     },
     "de": {

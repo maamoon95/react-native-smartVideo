@@ -5,6 +5,7 @@
         "videoengagerUrl": "https://dev.videoengager.com",
         "tennantId": "test_tenant",
         "environment": "https://api.mypurecloud.com.au",
+        "env":"mypurecloud.com.au",
         "queue": "video"
     },
     "de": {

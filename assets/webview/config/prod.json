@@ -5,6 +5,7 @@
         "videoengagerUrl": "https://videome.leadsecure.com",
         "tennantId": "0FphTk091nt7G1W7",
         "environment": "https://api.mypurecloud.com",
+        "env":"mypurecloud.com",
         "queue": "Support"
     },
     "de": {
