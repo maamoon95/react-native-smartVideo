@@ -189,6 +189,7 @@ class VideoEngager {
         oVideoEngager.subscribe('CallbackService.scheduleError', function (e) {
           if (e.data.responseJSON && e.data.responseJSON.body) {
             document.querySelector('#cx_callback_information').innerText = e.data.responseJSON.body.message;
+            postMessageToReactNative({ type: 'CallbackError', message: e.data.responseJSON.body.message });
           }
         });
 
@@ -306,6 +307,7 @@ class VideoEngager {
           })
           .fail(function (e) {
             console.error('failed to regsiter preprocessor');
+            postMessageToReactNative('[CXW]  :failed to regsiter preprocessor');
           });
       });
     };
@@ -429,6 +431,7 @@ class VideoEngager {
           console.log('WebChatService started Chat');
         }).fail(function (e) {
           console.error('WebChatService failed to start chat: ', e);
+          postMessageToReactNative('[CXW] WebChatService failed to start chat');
           closeIframeOrPopup();
         });
     };

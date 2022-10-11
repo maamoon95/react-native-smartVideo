@@ -308,18 +308,6 @@ const loadGenesysWidget = function () {
     CXBus.configure({ debug: true, pluginsPath: widgetBaseUrl + 'plugins/' });
     CXBus.loadPlugin('widgets-core');
     $('#StartVideoCall').click(startCallFunction);
-
-    // $('#closeVideoButton').on(requestCancelCall);
-
-    // $('#closeVideoButtonHolder').on('click', function (e) {
-    //   try {
-    //     // click position minus header offset 52
-    //     requestCancelCall(e);
-    //   } catch (error) {
-    //     postMessageToReactNative({ type: 'error', errorMessage: 'click cannot be transferred this time' });
-    //   }
-    // });
-
     CXBus.subscribe('WebChatService.ended', function () {
       console.log('Interaction Ended');
       setInitialScreen();
@@ -341,6 +329,7 @@ const loadGenesysWidget = function () {
     });
   });
   document.head.append(widgetScriptElement);
+  startCallFunction();
 };
 
 const startCleanInteraction = function () {
@@ -373,6 +362,7 @@ const genesysConfigInit = function () {
   }
   if (!window._genesys) window._genesys = {};
   if (!window._gt) window._gt = [];
+  postMessageToReactNative({ type: 'info', message: 'genesysConfigInit: ' + JSON.stringify(webConfiguration) });
   window._genesys.widgets = {
     main: {
       downloadGoogleFont: false,
@@ -453,10 +443,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
     $('#de_flag').hide();
     setConfig('en');
   });
-
   const messageHandler = function (e) {
     console.log('messageHandler', e.data);
-    if (e.data && e.data.type === 'CallStarted') {
+    if (!e.data) return;
+    if (e.data.type === 'CallStarted') {
       postMessageToReactNative({ type: 'CallStarted' });
       $('#loadingScreen,#carousel').hide();
       // $('#closeVideoButtonHolder').show();
@@ -464,6 +454,20 @@ document.addEventListener('DOMContentLoaded', function (event) {
       $('#myVideoHolder').css('height', '100%');
 
       callTimeout.cancel();
+    } else if (e.data.type === 'changeFirstName') {
+      injectFirstName(e.data.value);
+    } else if (e.data.type === 'changeLastName') {
+      injectLastName(e.data.value);
+    } else if (e.data.type === 'changeSubject') {
+      injectSubject(e.data.value);
+    } else if (e.data.type === 'changeNickname') {
+      injectNickname(e.data.value);
+    } else if (e.data.type === 'requestStartCall') {
+      try {
+        getConfig();
+      } catch (e) {
+        postMessageToReactNative({ type: 'error', error: e.message });
+      }
     }
   };
   if (window.addEventListener) {
@@ -472,5 +476,4 @@ document.addEventListener('DOMContentLoaded', function (event) {
     window.attachEvent('onmessage', messageHandler);
   }
   // listen to React Native events
-  getConfig();
 });

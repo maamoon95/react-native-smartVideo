@@ -1,6 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import { forwardRef, useEffect, useRef } from 'react';
-import { Text, View, LayoutAnimation, Pressable, Platform, TextInput, PermissionsAndroid } from 'react-native';
+import { Text, View, LayoutAnimation, Pressable, TextInput } from 'react-native';
+import { Camera, PermissionStatus } from 'expo-camera';
+import { Avatar, Banner, Button, HStack } from '@react-native-material/core';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 export default function CallForm ({ startCall, webViewRef, started, setStarted, setLoading, loading, isReady }) {
   const emailRef = useRef('visitor@videoengager.com');
@@ -8,22 +11,40 @@ export default function CallForm ({ startCall, webViewRef, started, setStarted, 
   const lastNameRef = useRef('Native');
   const subjectRef = useRef('');
   const nickNameRef = useRef('visitor');
+  const [permissionCam, requestPermissionCam] = Camera.useCameraPermissions();
+  const [permissionMic, requestPermissionMic] = Camera.useMicrophonePermissions();
+
   function injectWebConfiguration () {
     if (emailRef.current) {
-      webViewRef.current.injectJavaScript('window.injectEmail("' + emailRef.current + '");');
+      webViewRef.current.postMessage({ type: 'changeEmail', value: emailRef.current });
     }
     if (firstNameRef.current) {
-      webViewRef.current.injectJavaScript('window.injectFirstName("' + firstNameRef.current + '");');
+      webViewRef.current.postMessage({ type: 'changeFirstName', value: firstNameRef.current });
     }
     if (lastNameRef.current) {
-      webViewRef.current.injectJavaScript('window.injectLastName("' + lastNameRef.current + '");');
+      webViewRef.current.postMessage({ type: 'changeLastName', value: lastNameRef.current });
     }
     if (subjectRef.current) {
-      webViewRef.current.injectJavaScript('window.injectSubject("' + subjectRef.current + '");');
+      webViewRef.current.postMessage({ type: 'changeSubject', value: subjectRef.current });
     }
     if (nickNameRef.current) {
-      webViewRef.current.injectJavaScript('window.injectNickname("' + nickNameRef.current + '");');
+      webViewRef.current.postMessage({ type: 'changeNickname', value: nickNameRef.current });
     }
+  }
+  async function requestPermissions () {
+    const { status: statusCam } = await requestPermissionCam();
+    const { status: statusMic } = await requestPermissionMic();
+    if (statusCam === 'granted' && statusMic === 'granted') {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  async function submitFormAndStartCall () {
+    const permissionsGranted = await requestPermissions();
+    if (!permissionsGranted) return;
+    injectWebConfiguration();
+    startCall();
   }
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -42,6 +63,29 @@ export default function CallForm ({ startCall, webViewRef, started, setStarted, 
         position: 'absolute'
       }}
     >
+      {(permissionCam && permissionMic) && (permissionCam.status === PermissionStatus.DENIED || permissionMic.status === PermissionStatus.DENIED) &&
+        <Banner
+          style={{
+            position: 'absolute',
+            top: '10%',
+            width: '90%',
+            zIndex: 100000,
+            borderRadius: 10,
+            backgroundColor: 'rgba(40,40,200,1)'
+          }}
+          textStyle={{
+            color: 'white'
+          }}
+          illustration={props => (
+            <Avatar
+              color='primary'
+              icon={props => <Icon name='video-off' {...props} />}
+              {...props}
+            />
+          )}
+          text={'Error: ' + 'Camera and microphone permissions are required to start a call.'}
+
+        />}
       <StatusBar style='auto' />
       <View
         className='w-1/2 min-w-min  h-full max-w-xl' style={{
@@ -62,17 +106,7 @@ export default function CallForm ({ startCall, webViewRef, started, setStarted, 
         <InputComponent ref={subjectRef} placeholder='Subject' label='Subject' multiline defaultValue={subjectRef.current} />
         <View className='w-full '>
           <Pressable
-            onPress={async () => {
-              if (Platform.OS === 'android') {
-                const xsxs = await PermissionsAndroid.requestMultiple([
-                  PermissionsAndroid.PERMISSIONS.CAMERA
-
-                ]);
-                console.log('Permissions granted', xsxs);
-              }
-              injectWebConfiguration();
-              startCall();
-            }}
+            onPress={submitFormAndStartCall}
         // onTouchEnd={handlePress}
             className='bg-blue-400 overflow-hidden hover:bg-blue-700 w-full active:bg-blue-700  active:text-white hover:text-white px-5 py-3 rounded-lg'
             style={{

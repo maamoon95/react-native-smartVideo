@@ -1,6 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Text, View, Pressable, Platform, StyleSheet, TextInput, PermissionsAndroid } from 'react-native';
-import { styled } from 'nativewind';
+import { Text, View, StyleSheet, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useEffect, useRef, useState } from 'react';
 import LottieView from 'lottie-react-native';
@@ -12,16 +11,14 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 // end call with requestCancelCall
 // initcall with startCallFunction
-// const htmlFILE = require('./assets/webview/kiosk/index.html');
+// const htmlFILEr = require('./assets/webview/kiosk/index.html');
 // const StyledPressable = styled(Pressable);
 
-const StyledText = styled(Text);
 export default function App () {
-  // const [veURL, setVeURL] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [inCall, setInCall] = useState(true);
+  const [inCall, setInCall] = useState(false);
   const [error, setCurrentError] = useState(null);
   const webViewRef = useRef(null);
   const animationRef = useRef();
@@ -33,14 +30,13 @@ export default function App () {
     }
   }, [loading]);
   function startCall () {
-    webViewRef.current.injectJavaScript(`
-        window.startCallFunction();
-        `);
+    webViewRef.current.postMessage({ type: 'requestStartCall' });
   }
+
   return (
     <View className='flex-1 items-center justify-center bg-blue-100 w-full h-full'>
-      <View className='w-full flex justify-center items-center absolute top-0' style={{ height: '30%' }}>
-        <Svg width='136' height='127' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <View className='w-full flex justify-center items-center absolute top-0' style={{ height: '30%', paddingVertical: 10 }}>
+        <Svg viewBox='-30 -70 200 200' width='136' height='127' fill='none' xmlns='http://www.w3.org/2000/svg'>
           <G clip-path='url(#a)' fill='#0097ee'>
             <Path d='M121.8 0H13.742C6.023.017.014 6.032 0 13.762v72.265c0 7.73 6.012 13.725 13.73 13.756 4.062.014 8.123.045 12.181-.026 1.1-.02 1.31.329 1.304 1.353-.046 6.896 0 13.793-.037 20.701 0 2.064.619 3.712 2.522 4.681 1.988 1.013 3.692.448 5.347-.873 10.224-8.21 20.458-16.413 30.702-24.608a5.05 5.05 0 0 1 3.422-1.242c17.562.041 35.124.05 52.686.025 8.216 0 14.123-5.884 14.126-14.073V14.16C135.991 5.868 130.11 0 121.8 0Zm.032 90.712c-18.412 0-36.825-.006-55.24-.018a6.45 6.45 0 0 0-4.282 1.486 6806.664 6806.664 0 0 1-24.965 20.003c-.259.205-.529.395-1.07.8V95.748c0-3.185-1.83-5.028-4.988-5.034H14.148c-3.251 0-5.066-1.826-5.066-5.104-.008-23.801-.006-47.611.006-71.431 0-3.284 1.803-5.105 5.049-5.105h107.774c3.172 0 5.016 1.84 5.016 5.005v71.568c0 3.255-1.824 5.064-5.095 5.064Z' />
             <Path d='m102.208 66.279-16.642-9.074v8.952c0 3.097-1.743 5.04-4.808 5.402-.377.042-.756.063-1.136.063H39.696c-3.16 0-5.02-1.257-5.788-3.76a6.086 6.086 0 0 1-.193-1.818V33.887c0-3.48 2.062-5.536 5.552-5.536h40.776c3.478 0 5.506 2.056 5.515 5.558v8.924l16.639-9.057.011 32.503Z' />
@@ -69,7 +65,7 @@ export default function App () {
         illustration={props => (
           <Avatar
             color='primary'
-            icon={props => <Icon name='wifi-off' {...props} />}
+            icon={props => <Icon name='error' {...props} />}
             {...props}
           />
         )}
@@ -80,10 +76,12 @@ export default function App () {
           </HStack>
         }
                 />}
+
       <WebView
         mediaCapturePermissionGrantType='grantIfSameHostElsePrompt'
         startInLoadingState
         ref={webViewRef}
+        incognito
         className='bg-red-400  overflow-hidden hover:bg-blue-700 active:bg-blue-700 active:text-white hover:text-white px-5 py-3 rounded-lg '
         containerStyle={{
           width: '100%',
@@ -91,11 +89,16 @@ export default function App () {
           position: 'absolute',
           zIndex: 10000,
           borderRadius: 10,
-          top: inCall ? 0 : '100%'
-          // top: inCall && !loading ? 0 : '100%'
+          // top: inCall ? 0 : '100%'
+          top: inCall && !loading ? 0 : '100%'
         }}
         // useWebKit
         injectedJavaScriptBeforeContentLoaded='window.injectedEnv="dev";'
+        onLoad={() => {
+          setTimeout(() => {
+            webViewRef.current.postMessage({ test: 'Hello from React Native!' });
+          }, 3000);
+        }}
         onMessage={(event) => {
           console.log('received event', event.nativeEvent.data);
           try {
@@ -127,23 +130,21 @@ export default function App () {
 
           // setCurrentMessage(parsedData.type);
         }}
-
+        originWhitelist={['*']}
         onError={(error) => {
           setCurrentError('error loading page');
           console.log('error loading page', error);
         }}
-        originWhitelist={['*']}
-        cacheEnabled={false}
+        // cacheEnabled={false}
         allowFileAccess
         allowingReadAccessToURL
-        // baseURL='./assets/webview/'
-        domStorageEnabled
-        allowUniversalAccessFromFileURLs
-        allowFileAccessFromFileURLs
+        // // baseURL='./assets/webview/'
+        // domStorageEnabled
+        // allowUniversalAccessFromFileURLs
+        // allowFileAccessFromFileURLs
         geolocationEnabled
-        mediaPlaybackRequiresUserAction
+        mediaPlaybackRequiresUserAction={false}
         javaScriptEnabled
-        allowsInlineMediaPlayback
         // source={{ uri: 'https://maamoon95.github.io/react-native-smartVideo/assets/webview/index.html' }}
         source={{ uri: 'http://192.168.1.190:4100/assets/webview/index.html' }}
       />
