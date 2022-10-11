@@ -17,6 +17,9 @@
             document.getElementById("test").innerHTML = window.reactNativeVars;
 
         };
+        document.addEventListener("RemoteUnmuted", function (event) {
+            console.log('test event', event);
+        });
         function changeValue (data) {
             console.log(data);
             document.getElementById("postmessage").innerHTML = data;

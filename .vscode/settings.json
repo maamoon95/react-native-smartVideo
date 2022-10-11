@@ -1,3 +1,6 @@
 {
-    "liveServer.settings.multiRootWorkspaceName": "react-native-smartVideo"
+    "liveServer.settings.multiRootWorkspaceName": "react-native-smartVideo",
+    "cSpell.words": [
+        "Pressable"
+    ]
 }

@@ -1,4 +1,9 @@
 /* eslint-disable no-console */
+function postMessageToReactNative (data) {
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify(data));
+  }
+}
 class VideoEngager {
   constructor () {
     let popupinstance = null;
@@ -164,7 +169,11 @@ class VideoEngager {
       });
 
       oVideoEngager.registerCommand('endCall', function (e) {
+        postMessageToReactNative({ type: 'CallEnded' });
         oVideoEngager.command('WebChatService.endChat');
+        if (window.iframeHolder && window.iframeHolder.contentWindow) {
+          window.iframeHolder.contentWindow.postMessage({ type: 'genesysAgentDisconnected' }, '*');
+        }
         closeIframeOrPopup();
       });
 
@@ -543,4 +552,3 @@ if (typeof (Event) === 'function') {
   event.initEvent(eventName, true, true);
 }
 document.dispatchEvent(event);
-

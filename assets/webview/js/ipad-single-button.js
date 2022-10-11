@@ -5,6 +5,49 @@ const ERROR_RETRY_TIMEOUT = 1000 * 5;
 const INACTIVITY_TIMEOUT = 1000 * 60 * 60;
 const CALL_TIMEOUT = 1000 * 60 * 3;
 let GENESYS_CONFIG = {};
+// {
+//     nickname: 'Visitor',
+//     firstname: 'Duty Free',
+//     lastname: 'Visitor',
+//     // email: 'na@videoengager.com',
+//     subject: 'Duty Free Demo',
+//     userData: {}
+//   }
+function injectFirstName (firstName) {
+  if (!window.injectedWebConfiguration) {
+    window.injectedWebConfiguration = {};
+  }
+  window.injectedWebConfiguration.firstname = firstName;
+}
+window.injectFirstName = injectFirstName;
+function injectLastName (lastName) {
+  if (!window.injectedWebConfiguration) {
+    window.injectedWebConfiguration = {};
+  }
+  window.injectedWebConfiguration.lastname = lastName;
+}
+window.injectLastName = injectLastName;
+function injectNickname (nickname) {
+  if (!window.injectedWebConfiguration) {
+    window.injectedWebConfiguration = {};
+  }
+  window.injectedWebConfiguration.nickname = nickname;
+}
+window.injectNickname = injectNickname;
+function injectEmail (email) {
+  if (!window.injectedWebConfiguration) {
+    window.injectedWebConfiguration = {};
+  }
+  window.injectedWebConfiguration.email = email;
+}
+window.injectEmail = injectEmail;
+function injectSubject (subject) {
+  if (!window.injectedWebConfiguration) {
+    window.injectedWebConfiguration = {};
+  }
+  window.injectedWebConfiguration.subject = subject;
+}
+window.injectSubject = injectSubject;
 function postMessageToReactNative (data) {
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(JSON.stringify(data));
@@ -73,6 +116,7 @@ const handleError = function (statusCode) {
 
   $('#modalTitle').html(codeResolve[statusCode].type);
   $('.modal-body').html(codeResolve[statusCode].message);
+  postMessageToReactNative({ type: 'error', error: codeResolve[statusCode].type + ' ' + codeResolve[statusCode].message });
   $('#errorModal').modal('show');
   $('.modal-footer-custom').hide();
 };
@@ -140,7 +184,7 @@ const setInitialScreen = function () {
   $('#footerPreCall').show();
   $('#footerOnCall').hide();
   $('#loadingScreen,#carousel').hide();
-  postMessageToReactNative({ type: 'PageIsReadyToStart' });
+
   $('#initial-screen').show();
   $('#oncall-screen').hide();
   $('#lang').show();
@@ -251,12 +295,10 @@ function requestCancelCall (e) {
   if (e) {
     e.preventDefault();
     CXBus.command('VideoEngager.endCall');
-    if (window.iframeHolder && window.iframeHolder.contentWindow) {
-      window.iframeHolder.contentWindow.postMessage({ type: 'genesysAgentDisconnected' }, '*');
-    }
     setInitialScreen();
   }
 }
+window.requestCancelCall = requestCancelCall;
 const loadGenesysWidget = function () {
   const widgetBaseUrl = 'https://apps.mypurecloud.de/widgets/9.0/';
   const widgetScriptElement = document.createElement('script');
@@ -267,20 +309,21 @@ const loadGenesysWidget = function () {
     CXBus.loadPlugin('widgets-core');
     $('#StartVideoCall').click(startCallFunction);
 
-    $('#closeVideoButton').on(requestCancelCall);
+    // $('#closeVideoButton').on(requestCancelCall);
 
-    $('#closeVideoButtonHolder').on('click', function (e) {
-      try {
-        // click position minus header offset 52
-        requestCancelCall(e);
-      } catch (error) {
-        postMessageToReactNative({ type: 'error', errorMessage: 'click cannot be transferred this time' });
-      }
-    });
+    // $('#closeVideoButtonHolder').on('click', function (e) {
+    //   try {
+    //     // click position minus header offset 52
+    //     requestCancelCall(e);
+    //   } catch (error) {
+    //     postMessageToReactNative({ type: 'error', errorMessage: 'click cannot be transferred this time' });
+    //   }
+    // });
 
     CXBus.subscribe('WebChatService.ended', function () {
       console.log('Interaction Ended');
       setInitialScreen();
+      postMessageToReactNative({ type: 'CallEnded' });
       callTimeout.cancel();
     });
 
@@ -294,6 +337,7 @@ const loadGenesysWidget = function () {
       // Log the error and continue
       console.error('WebService error' + JSON.stringify(e));
       setInitialScreen();
+      postMessageToReactNative({ type: 'error', error: JSON.stringify(e) });
     });
   });
   document.head.append(widgetScriptElement);
@@ -321,10 +365,10 @@ const genesysConfigInit = function () {
     subject: 'Duty Free Demo',
     userData: {}
   };
-  if (window.inejectedGenysysConfig && typeof window.inejectedGenysysConfig === 'object') {
+  if (window.injectedWebConfiguration && typeof window.injectedWebConfiguration === 'object') {
     webConfiguration = {
-      ...window.inejectedGenysysConfig,
-      userData: {}
+      ...webConfiguration,
+      ...window.injectedWebConfiguration
     };
   }
   if (!window._genesys) window._genesys = {};
@@ -388,6 +432,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     return;
   }
   setInitialScreen();
+  postMessageToReactNative({ type: 'PageIsReadyToStart' });
   // lang
   $('#en_flag').show();
   $('#de_flag').hide();
@@ -414,8 +459,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     if (e.data && e.data.type === 'CallStarted') {
       postMessageToReactNative({ type: 'CallStarted' });
       $('#loadingScreen,#carousel').hide();
-      $('#closeVideoButtonHolder').show();
-      $('#closeVideoButtonHolder').focus();
+      // $('#closeVideoButtonHolder').show();
+      // $('#closeVideoButtonHolder').focus();
       $('#myVideoHolder').css('height', '100%');
 
       callTimeout.cancel();
