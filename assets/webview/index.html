@@ -16,20 +16,25 @@
 
 <body class="container-body">
     <script>
-        // window.console = {
-        //     log: function (message) {
-        //         window.ReactNativeWebView.postMessage((JSON.stringify(message)));
-        //     },
-        //     info: function (message) {
-        //         window.ReactNativeWebView.postMessage((JSON.stringify(message)));
-        //     },
-        //     error: function (message) {
-        //         window.ReactNativeWebView.postMessage((JSON.stringify(message)));
-        //     },
-        //     warn: function (message) {
-        //         window.ReactNativeWebView.postMessage((JSON.stringify(message)));
-        //     }
-        // };
+        function postMessageToReactNative (data) {
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify(data));
+            }
+        }
+        window.console = {
+            log: function (message) {
+                postMessageToReactNative(message);
+            },
+            info: function (message) {
+                postMessageToReactNative(message);
+            },
+            error: function (message) {
+                postMessageToReactNative(message);
+            },
+            warn: function (message) {
+                postMessageToReactNative(message);
+            }
+        };
     </script>
     <header id="header-logo" class="header-css">
         <img width="30px" height="30px" src="./img/logo.png" />
@@ -40,9 +45,9 @@
     </header>
 
     <div id="oncall-screen" style="display: none;">
-        <div id="closeVideoButtonHolder">
+        <!-- <div id="closeVideoButtonHolder">
             <img class="button" id="closeVideoButton" src="./img/endcall.png">
-        </div>
+        </div> -->
         <div id="myVideoHolder"></div>
         <div id="carousel" class="carousel slide" data-interval="5000" data-wrap="true" data-pause="false"
             data-ride="carousel">

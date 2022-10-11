@@ -89,11 +89,13 @@ export default function App () {
           position: 'absolute',
           zIndex: 10000,
           borderRadius: 10,
-          // top: inCall ? 0 : '100%'
-          top: inCall && !loading ? 0 : '100%'
+          bottom: 200
+          // top: inCall && !loading ? 0 : '100%'
         }}
-        onLoad={() => {
-          webViewRef.current.postMessage({ type: 'injectEnvironment', value: 'dev' });
+        onLoadEnd={() => {
+          setTimeout(() => {
+            webViewRef.current.postMessage({ type: 'injectEnvironment', value: 'dev' });
+          }, 3000);
         }}
         onMessage={(event) => {
           console.log('received event', event.nativeEvent.data);
@@ -131,7 +133,7 @@ export default function App () {
           setCurrentError('error loading page');
           console.log('error loading page', error);
         }}
-        // cacheEnabled={false}
+        cacheEnabled={false}
         allowFileAccess
         allowingReadAccessToURL
         // // baseURL='./assets/webview/'

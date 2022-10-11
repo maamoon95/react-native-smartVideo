@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { forwardRef, useEffect, useRef } from 'react';
 import { Text, View, LayoutAnimation, Pressable, TextInput } from 'react-native';
 import { Camera, PermissionStatus } from 'expo-camera';
-import { Avatar, Banner, Button, HStack } from '@react-native-material/core';
+import { Avatar, Banner } from '@react-native-material/core';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 export default function CallForm ({ startCall, webViewRef, started, setStarted, setLoading, loading, isReady }) {

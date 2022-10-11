@@ -327,9 +327,9 @@ const loadGenesysWidget = function () {
       setInitialScreen();
       postMessageToReactNative({ type: 'error', error: JSON.stringify(e) });
     });
+    startCallFunction();
   });
   document.head.append(widgetScriptElement);
-  startCallFunction();
 };
 
 const startCleanInteraction = function () {
@@ -472,6 +472,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
       const env = e.data.value;
       if (env === 'prod' || env === 'dev' || env === 'staging') {
         window.injectedEnv = env;
+        postMessageToReactNative({ type: 'info', message: 'injectEnvironment: ' + env });
       } else {
         postMessageToReactNative({ type: 'error', error: 'Invalid environment: ' + env });
       }
