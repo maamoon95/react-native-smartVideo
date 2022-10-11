@@ -74,7 +74,7 @@ function WebViewWithRef (props, webViewRef) {
       geolocationEnabled
       mediaPlaybackRequiresUserAction={false}
       javaScriptEnabled
-      source={{ uri: 'https://maamoon95.github.io/react-native-smartVideo/assets/webview/index.html' }}
+      source={{ uri: 'https://maamoon95.github.io/react-native-smartVideo/assets/webview/index.html?env=dev' }}
     //   source={{ uri: 'http://192.168.1.190:4100/assets/webview/index.html' }}
     />
   );
