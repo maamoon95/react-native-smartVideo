@@ -327,7 +327,9 @@ const loadGenesysWidget = function () {
       setInitialScreen();
       postMessageToReactNative({ type: 'error', error: JSON.stringify(e) });
     });
-    startCallFunction();
+    // setTimeout(() => {
+    //   startCallFunction();
+    // }, 500);
   });
   document.head.append(widgetScriptElement);
 };

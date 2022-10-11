@@ -89,8 +89,8 @@ export default function App () {
           position: 'absolute',
           zIndex: 10000,
           borderRadius: 10,
-          bottom: 200
-          // top: inCall && !loading ? 0 : '100%'
+          // bottom: 200
+          top: inCall && !loading ? 0 : '100%'
         }}
         onLoadEnd={() => {
           setTimeout(() => {

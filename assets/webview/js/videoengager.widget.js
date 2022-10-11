@@ -304,6 +304,7 @@ class VideoEngager {
         })
           .done(function (e) {
             console.log('VE WebChatService.registerPreProcessor');
+            window.startCallFunction();
           })
           .fail(function (e) {
             console.error('failed to regsiter preprocessor');

@@ -5,7 +5,7 @@ import { Camera, PermissionStatus } from 'expo-camera';
 import { Avatar, Banner } from '@react-native-material/core';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
-export default function CallForm ({ startCall, webViewRef, started, setStarted, setLoading, loading, isReady }) {
+export default function CallForm ({ startCall, webViewRef, started, inCall, setStarted, setLoading, loading, isReady }) {
   const emailRef = useRef('visitor@videoengager.com');
   const firstNameRef = useRef('Visitor');
   const lastNameRef = useRef('Native');
@@ -48,7 +48,7 @@ export default function CallForm ({ startCall, webViewRef, started, setStarted, 
   }
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [started, isReady]);
+  }, [started, isReady, inCall, !loading]);
   return (
     <View
       className='flex-1 items-center justify-center bg-white w-full transition-all duration-300'
