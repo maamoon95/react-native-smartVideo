@@ -1,39 +1,36 @@
 import { StatusBar } from 'expo-status-bar';
 import { forwardRef, useEffect, useRef } from 'react';
 import { Text, View, LayoutAnimation, Pressable, TextInput } from 'react-native';
-import { Camera, PermissionStatus } from 'expo-camera';
-import { Avatar, Banner } from '@react-native-material/core';
-import Icon from '@expo/vector-icons/MaterialCommunityIcons';
+import { Camera } from 'expo-camera';
+import PermissionBanner from './permissionBanner';
 
-export default function CallForm ({ startCall, webViewRef, started, inCall, setStarted, setLoading, loading, isReady }) {
+export default function CallForm ({ startCall, sendMessageToWebview, inCall, loading, isReady }) {
   const emailRef = useRef('visitor@videoengager.com');
   const firstNameRef = useRef('Visitor');
   const lastNameRef = useRef('Native');
   const subjectRef = useRef('');
   const nickNameRef = useRef('visitor');
-  const [permissionCam, requestPermissionCam] = Camera.useCameraPermissions();
-  const [permissionMic, requestPermissionMic] = Camera.useMicrophonePermissions();
 
   function injectWebConfiguration () {
     if (emailRef.current) {
-      webViewRef.current.postMessage({ type: 'changeEmail', value: emailRef.current });
+      sendMessageToWebview({ type: 'changeEmail', value: emailRef.current });
     }
     if (firstNameRef.current) {
-      webViewRef.current.postMessage({ type: 'changeFirstName', value: firstNameRef.current });
+      sendMessageToWebview({ type: 'changeFirstName', value: firstNameRef.current });
     }
     if (lastNameRef.current) {
-      webViewRef.current.postMessage({ type: 'changeLastName', value: lastNameRef.current });
+      sendMessageToWebview({ type: 'changeLastName', value: lastNameRef.current });
     }
     if (subjectRef.current) {
-      webViewRef.current.postMessage({ type: 'changeSubject', value: subjectRef.current });
+      sendMessageToWebview({ type: 'changeSubject', value: subjectRef.current });
     }
     if (nickNameRef.current) {
-      webViewRef.current.postMessage({ type: 'changeNickname', value: nickNameRef.current });
+      sendMessageToWebview({ type: 'changeNickname', value: nickNameRef.current });
     }
   }
   async function requestPermissions () {
-    const { status: statusCam } = await requestPermissionCam();
-    const { status: statusMic } = await requestPermissionMic();
+    const { status: statusCam } = await Camera.requestCameraPermissionsAsync();
+    const { status: statusMic } = await Camera.requestMicrophonePermissionsAsync();
     if (statusCam === 'granted' && statusMic === 'granted') {
       return true;
     } else {
@@ -41,62 +38,42 @@ export default function CallForm ({ startCall, webViewRef, started, inCall, setS
     }
   }
   async function submitFormAndStartCall () {
+    console.log('submitFormAndStartCall');
     const permissionsGranted = await requestPermissions();
     if (!permissionsGranted) return;
+
     injectWebConfiguration();
     startCall();
   }
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [started, isReady, inCall, !loading]);
+  }, [isReady, inCall, !loading]);
   return (
     <View
       className='flex-1 items-center justify-center bg-white w-full transition-all duration-300'
       style={{
-        paddingVertical: '10%',
+        paddingVertical: 5,
         borderTopEndRadius: 30,
         borderTopStartRadius: 30,
         height: '70%',
-        top: (isReady && !started && !loading) ? '30%' : '100%',
+        top: (isReady && !loading) ? '30%' : '100%',
         // bottom: 0,
         overflow: 'hidden',
         position: 'absolute'
       }}
     >
-      {(permissionCam && permissionMic) && (permissionCam.status === PermissionStatus.DENIED || permissionMic.status === PermissionStatus.DENIED) &&
-        <Banner
-          style={{
-            position: 'absolute',
-            top: '10%',
-            width: '90%',
-            zIndex: 100000,
-            borderRadius: 10,
-            backgroundColor: 'rgba(40,40,200,1)'
-          }}
-          textStyle={{
-            color: 'white'
-          }}
-          illustration={props => (
-            <Avatar
-              color='primary'
-              icon={props => <Icon name='video-off' {...props} />}
-              {...props}
-            />
-          )}
-          text={'Error: ' + 'Camera and microphone permissions are required to start a call.'}
-
-        />}
+      <PermissionBanner />
       <StatusBar style='auto' />
       <View
-        className='w-1/2 min-w-min  h-full max-w-xl' style={{
+        className='w-full max-w-xs  h-full md:max-w-xl pb-4' style={{
           display: 'flex',
-          maxHeight: 420,
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          //   maxHeight: 430,
+          flexDirection: 'column'
+          //   justifyContent: 'space-between'
+
         }}
       >
-        <Text>
+        <Text className='py-3'>
           Please Fill your Information to Start A Call
         </Text>
         <InputComponent defaultValue={emailRef.current} ref={emailRef} placeholder='Email' label='Email' />
@@ -104,7 +81,7 @@ export default function CallForm ({ startCall, webViewRef, started, inCall, setS
         <InputComponent ref={firstNameRef} placeholder='First Name' label='First Name' defaultValue={firstNameRef.current} />
         <InputComponent ref={lastNameRef} placeholder='Last Name' label='Last Name' defaultValue={lastNameRef.current} />
         <InputComponent ref={subjectRef} placeholder='Subject' label='Subject' multiline defaultValue={subjectRef.current} />
-        <View className='w-full '>
+        <View className='w-full my-3'>
           <Pressable
             onPress={submitFormAndStartCall}
         // onTouchEnd={handlePress}
@@ -129,7 +106,7 @@ export default function CallForm ({ startCall, webViewRef, started, inCall, setS
 const InputComponent = forwardRef(InputWithRef);
 function InputWithRef (props, ref) {
   return (
-    <View className='w-full flex gap-2'>
+    <View className='w-full flex gap-2 py-1'>
       <Text className='text-gray-500 px-1'>
         {props.label || 'label'}
       </Text>
