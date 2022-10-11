@@ -92,12 +92,8 @@ export default function App () {
           // top: inCall ? 0 : '100%'
           top: inCall && !loading ? 0 : '100%'
         }}
-        // useWebKit
-        injectedJavaScriptBeforeContentLoaded='window.injectedEnv="dev";'
         onLoad={() => {
-          setTimeout(() => {
-            webViewRef.current.postMessage({ test: 'Hello from React Native!' });
-          }, 3000);
+          webViewRef.current.postMessage({ type: 'injectEnvironment', value: 'dev' });
         }}
         onMessage={(event) => {
           console.log('received event', event.nativeEvent.data);

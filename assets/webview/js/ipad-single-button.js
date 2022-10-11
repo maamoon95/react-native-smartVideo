@@ -468,6 +468,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
       } catch (e) {
         postMessageToReactNative({ type: 'error', error: e.message });
       }
+    } else if (e.data.type === 'injectEnvironment') {
+      const env = e.data.value;
+      if (env === 'prod' || env === 'dev' || env === 'staging') {
+        window.injectedEnv = env;
+      } else {
+        postMessageToReactNative({ type: 'error', error: 'Invalid environment: ' + env });
+      }
     }
   };
   if (window.addEventListener) {
