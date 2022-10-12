@@ -1,5 +1,6 @@
 {
   "expo": {
+    "privacy": "public",
     "name": "react-native-smartVideo",
     "slug": "react-native-smartVideo",
     "version": "1.0.0",
