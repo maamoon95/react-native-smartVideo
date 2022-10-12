@@ -32,6 +32,9 @@ export default function App () {
   function startCall () {
     sendMessageToWebview({ type: 'requestStartCall' });
   }
+  function requestEndCall () {
+    sendMessageToWebview({ type: 'requestCancelCall' });
+  }
 
   return (
     <View className='flex-1 items-center justify-center bg-blue-100 w-full h-full'>
@@ -41,6 +44,7 @@ export default function App () {
         error={error}
       />
       <WebViewComponent
+        requestEndCall={requestEndCall}
         sendMessageToWebview={sendMessageToWebview}
         ref={webViewRef}
         inCall={inCall}
